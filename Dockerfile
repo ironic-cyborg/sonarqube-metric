@@ -7,4 +7,4 @@ RUN pip install --no-cache-dir -r requirements.txt
 
 COPY . .
 
-CMD [ "python", "./sonar-client.py" ]
+CMD [ "python", "./sonar-metrics.py" ]
