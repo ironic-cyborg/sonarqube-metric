@@ -5,6 +5,8 @@ import time
 
 from influxdb_client import InfluxDBClient
 
+
+
 class SonarApiClient:
 
     def __init__(self, user, passwd):
@@ -15,16 +17,16 @@ class SonarApiClient:
         r = requests.get(BASE_URL + endpoint, auth=(self.user, self.passwd))
         return r.json()
 
-    def get_all_ids(self, endpoint):
+    def get_all_keys(self, endpoint):
         data = self._make_request(endpoint)
-        ids = []
+        print(data)
+        keys = []
         for component in data['components']:
             dict = {
-                'id': component['id'],
                 'key': component['key']
             }
-            ids.append(dict)
-        return ids
+            keys.append(dict)
+        return keys
 
     def get_all_available_metrics(self, endpoint):
         data = self._make_request(endpoint)
@@ -35,7 +37,7 @@ class SonarApiClient:
         print ("metrics: ",metrics)
         return metrics
 
-    def get_measures_by_component_id(self, endpoint):
+    def get_measures_by_component_key(self, endpoint):
         print ("Hitting: ",endpoint)
         data = self._make_request(endpoint)
         return data['component']['measures']
@@ -43,8 +45,7 @@ class SonarApiClient:
 
 class Project:
 
-    def __init__(self, identifier, key):
-        self.id = identifier
+    def __init__(self, key):
         self.key = key
         self.metrics = None
         self.timestamp = datetime.datetime.utcnow().isoformat()
@@ -53,9 +54,6 @@ class Project:
         self.metrics = metrics
 
     def export_metrics(self):
-
-
-
         influx_client.write_api().write(INFLUX_BUCKET, INFLUX_ORG, self._prepare_metrics())
 
     def _prepare_metrics(self):
@@ -64,7 +62,6 @@ class Project:
             one_metric = {
                 "measurement": metric['metric'],
                 "tags": {
-                    "id": self.id,
                     "key": self.key
                 },
                 "time": self.timestamp,
@@ -81,6 +78,7 @@ print ("before while loop...")
 influx_client = InfluxDBClient(url=INFLUX_URL,
                                token=INFLUX_TOKEN,
                                org=INFLUX_ORG)
+print(influx_client.url)
 while True:
     count += 1
     print ("count -----")
@@ -92,8 +90,8 @@ while True:
 
     # Fetch all projects IDs
     client = SonarApiClient(USER, PASSWORD)
-    # ids = client.get_all_ids('/api/components/search?qualifiers=TRK')
-    ids = client.get_all_ids('/api/projects/search')
+    keys = client.get_all_keys('/api/components/search?qualifiers=TRK')
+    # ids = client.get_all_ids('/api/projects/search')
     # Fetch all available metrics
     metrics = client.get_all_available_metrics('/api/metrics/search')
     comma_separated_metrics = ''
@@ -102,14 +100,15 @@ while True:
 
     # Collect metrics per project
     uri = '/api/measures/component'
-    for item in ids:
-        project_id = item['id']
+    for item in keys:
         project_key = item['key']
-        print(project_key, project_id)
-        project = Project(identifier=project_id, key=project_key)
-        component_id_query_param = 'componentId=' + project_id
+        print(project_key)
+        project = Project(key=project_key)
+        component_query_param = 'component=' + project_key
         metric_key_query_param = 'metricKeys=' + comma_separated_metrics
-        measures = client.get_measures_by_component_id(uri + '?' + component_id_query_param + '&' + metric_key_query_param)
+        measures = client.get_measures_by_component_key(uri + '?' + component_query_param + '&' + metric_key_query_param)
+
+        #measures = client.get_measures_by_component_key(uri + '?' + '0' +'&' +metric_key_query_param)
         project.set_metrics(measures)
         project.export_metrics()
         print("END")
