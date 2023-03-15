@@ -5,14 +5,7 @@ import time
 
 from influxdb_client import InfluxDBClient
 
-BASE_URL = os.getenv('SONAR_BASE_URL', 'http://172.30.102.24:30715')
-USER = os.getenv('SONAR_USER', 'labellogic')
-PASSWORD = os.getenv('SONAR_PASSWORD', 'labellogic@123')
-INFLUX_URL = os.getenv('INFLUX_URL', 'http://localhost:8086')
-INFLUX_BUCKET = os.getenv('INFLUX_BUCKET', 'new')
-INFLUX_ORG = os.getenv('INFLUX_ORG', 'influxdata')
-INFLUX_TOKEN = os.getenv('INFLUX_TOKEN', '2TQKkTL4k5CnXOoAt2dJq3UJtkJ3RUo9hY0N02Rqvu_RZXw0589xpY7pK8D40cCHKXZi_F6719pdWSfYP73d5A==')
-INTERVAL = os.getenv('INTERVAL', '10')
+
 
 
 class SonarApiClient:
