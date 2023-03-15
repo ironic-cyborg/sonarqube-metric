@@ -5,9 +5,6 @@ import time
 
 from influxdb_client import InfluxDBClient
 
-
-
-
 class SonarApiClient:
 
     def __init__(self, user, passwd):
@@ -209,3 +206,4 @@ while True:
     influx_client.write_api().write(INFLUX_BUCKET, INFLUX_ORG, json_to_export)
     time.sleep(int(INTERVAL))
     break
+    
